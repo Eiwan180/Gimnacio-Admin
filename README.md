@@ -1,59 +1,26 @@
-# GimnasioAdmin
+# Gimnasio-Admin - Práctica 19: El Panel del Gimnasio (Tablero en Angular)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.5.
+---
 
-## Development server
+## Cuestionario y Respuestas por Ejercicio
 
-To start a local development server, run:
+### Ejercicio 1: El proyecto y el tablero
 
-```bash
-ng serve
-```
+#### Pregunta: ¿Qué archivo de Angular hace el papel de `main.tsx`, de `App.tsx` y de `vite.config.ts`?
+* **`main.tsx` (Punto de entrada de la aplicación):** 
+  En Angular, este papel lo cumple **`src/main.ts`**, que es el archivo encargado de iniciar la aplicación y arrancar el componente raíz utilizando `bootstrapApplication`.
+* **`App.tsx` (Componente raíz de la aplicación):** 
+  Equivale a **`src/app/app.component.ts`** (junto con su plantilla `app.component.html`), el cual define el componente principal que se muestra al cargar la aplicación.
+* **`vite.config.ts` (Configuración del empaquetador/proyecto):** 
+  En Angular moderno (que utiliza esbuild/Vite bajo el capó), la configuración global del proyecto, dependencias de compilación, estilos globales y activos se gestiona principalmente en **`angular.json`** (complementado con `tsconfig.json` para TypeScript).
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+---
 
-## Code scaffolding
+### Ejercicio 2: La tarjeta de una clase
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+#### Pregunta 1: ¿Por qué `clase()` lleva paréntesis y para qué sirve `track`?
+* **¿Por qué `clase()` lleva paréntesis?**
+  Lleva paréntesis porque en las versiones modernas de Angular con componentes *standalone*, los inputs definidos con `input.required()` o las señales (*signals*) se invocan como funciones para acceder y evaluar su valor actual de manera reactiva.
+* **¿Para qué sirve `track`?**
+  En el nuevo flujo de control `@for`, el parámetro `track` es obligatorio y se utiliza para identificar de manera única cada elemento de la colección. Esto permite a Angular optimizar el rendimiento del DOM al actualizar, reordenar o eliminar elementos sin necesidad de destruir y recrear todos los nodos de la interfaz.
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
