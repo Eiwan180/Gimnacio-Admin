@@ -1,0 +1,19 @@
+<div class="filtro" aria-label="Filtro por categoría">
+  <button
+    type="button"
+    [class.activo]="catalogo.categoria() === 'todas'"
+    (click)="cambiar('todas')"
+  >
+    Todas
+  </button>
+
+  @for (categoria of categorias; track categoria) {
+    <button
+      type="button"
+      [class.activo]="catalogo.categoria() === categoria"
+      (click)="cambiar(categoria)"
+    >
+      {{ categoria }}
+    </button>
+  }
+</div>

@@ -1,42 +1,100 @@
 <header class="barra">
-  <div class="barra_interior">
-    <span class="barra_marca">
-      <img src="logo.svg" alt="" /> Gimnasio Titanes
-      <span class="barra_etiqueta"> Admin </span>
-    </span>
+  <div class="barra__interior">
+    <div class="barra__marca">
+      <img src="/logo.svg" alt="Logo Gimnasio Titanes" />
+      <span>Gimnasio Titanes</span>
+    </div>
+
+    <span class="barra__etiqueta">Administración</span>
   </div>
 </header>
 
 <main class="pagina">
-  <div class="encabezado">
-    <h1>Catalogo de clases</h1>
-    <p>Estos datos son del archivo local</p>
-  </div>
-  <div class="acciones">
-    <button class="boton boton--secundario" (click)="vaciar()">Vaciar</button>
-    <button class="boton" (click)="restaurar()">Restaurar</button>
-  </div>
-  <section>
-    <div class="resumen_dato">
-      <span class="resumen_numero">{{ clases.length }}</span>
-      <span class="resumen_texto"> clases en el cátalogo </span>
+  <section class="encabezado">
+    <div>
+      <h1>Tablero de clases</h1>
+      <p>Filtra el catálogo y selecciona una clase para ver su detalle.</p>
     </div>
-    <div class="resumen_dato">
-      <span class="resumen_numero">{{ minutosTotales }}</span>
-      <span class="resumen_texto"> minutos a la semana </span>
-    </div>
-    <div class="resumen_dato">
-      <span class="resumen_numero">{{ clasesLargas }}</span>
-      <span class="resumen_texto"> clases de una hora o mas </span>
+
+    <div class="acciones">
+      <button
+        class="boton boton--secundario"
+        type="button"
+        (click)="catalogo.vaciarCatalogo()"
+      >
+        Vaciar catálogo
+      </button>
+
+      <button
+        class="boton"
+        type="button"
+        (click)="catalogo.restaurarCatalogo()"
+      >
+        Restaurar catálogo
+      </button>
     </div>
   </section>
 
-  <div class="rejillas">
-    @for (clase of clases; track clase.id){
-      <app-tarjeta-clase [clase]="clase"></app-tarjeta-clase>
-    } @empty {
-      <p class="vacio"> No hay clases disponibles </p>
+  <app-filtro-categoria />
+
+  <section class="resumen">
+    <div class="resumen__dato">
+      <span class="resumen__numero">{{ catalogo.clasesVisibles().length }}</span>
+      <span class="resumen__texto">clases visibles</span>
+    </div>
+
+    <div class="resumen__dato">
+      <span class="resumen__numero">{{ catalogo.minutosVisibles() }}</span>
+      <span class="resumen__texto">minutos del filtro</span>
+    </div>
+
+    <div class="resumen__dato">
+      <span class="resumen__numero">{{ catalogo.clasesLargasVisibles() }}</span>
+      <span class="resumen__texto">clases de 60 min o más</span>
+    </div>
+  </section>
+
+  <div class="tablero">
+    <section class="rejilla">
+      @for (clase of catalogo.clasesVisibles(); track clase.id) {
+        <app-tarjeta-clase
+          [clase]="clase"
+          [activa]="catalogo.seleccionada()?.id === clase.id"
+          (elegida)="catalogo.seleccionarClase($event)"
+        />
+      } @empty {
+        <div class="tarjeta vacio">
+          No hay clases para mostrar.
+        </div>
+      }
+    </section>
+
+    @if (catalogo.seleccionada(); as clase) {
+      <aside class="lateral tarjeta">
+        <img [src]="clase.imagen" [alt]="clase.nombre" />
+
+        <span class="etiqueta" [class]="'etiqueta etiqueta--' + clase.categoria">
+          {{ clase.categoria }}
+        </span>
+
+        <h2>{{ clase.nombre }}</h2>
+        <p>{{ clase.descripcion }}</p>
+
+        <div class="dato">
+          <span class="dato__clave">Duración:</span>
+          <span class="dato__valor">{{ clase.duracionMin }} minutos</span>
+        </div>
+
+        <div class="dato">
+          <span class="dato__clave">ID:</span>
+          <span class="dato__valor">{{ clase.id }}</span>
+        </div>
+      </aside>
+    } @else {
+      <aside class="lateral tarjeta">
+        <h2>Detalle</h2>
+        <p>Selecciona una clase para ver su información.</p>
+      </aside>
     }
-      
   </div>
 </main>
