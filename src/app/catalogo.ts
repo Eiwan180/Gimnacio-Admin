@@ -1,23 +1,42 @@
+import { httpResource } from '@angular/common/http';
 import { computed, Injectable, signal } from '@angular/core';
-import { CLASES_LOCALES } from './datos/clases-locales';
-import type { Categoria, Clase } from './modelos/clase';
+import { API_URL } from './config';
+import type { Categoria, Clase, Sobre } from './modelos/clase';
+import { mensajeDeApi } from './servicios/errores';
 
 export type FiltroCategoria = Categoria | 'todas';
 
 @Injectable({ providedIn: 'root' })
 export class Catalogo {
-  readonly clases = signal<Clase[]>([...CLASES_LOCALES]);
+  private readonly recurso = httpResource<Sobre<Clase[]>>(
+    () => `${API_URL}/clases`,
+  );
+
   readonly categoria = signal<FiltroCategoria>('todas');
   readonly seleccionada = signal<Clase | null>(null);
+  readonly cargando = this.recurso.isLoading;
+
+  readonly clases = computed<Clase[]>(() => {
+    if (!this.recurso.hasValue()) return [];
+
+    return this.recurso.value().data.map((clase) => ({
+      ...clase,
+      imagen: clase.imagen.startsWith('http')
+        ? clase.imagen
+        : `${API_URL}${clase.imagen}`,
+    }));
+  });
+
+  readonly mensajeError = computed(() => {
+    const error = this.recurso.error();
+    return error ? mensajeDeApi(error) : '';
+  });
 
   readonly clasesVisibles = computed(() => {
     const categoria = this.categoria();
     const clases = this.clases();
 
-    if (categoria === 'todas') {
-      return clases;
-    }
-
+    if (categoria === 'todas') return clases;
     return clases.filter((clase) => clase.categoria === categoria);
   });
 
@@ -48,14 +67,7 @@ export class Catalogo {
     this.seleccionada.set(clase);
   }
 
-  vaciarCatalogo(): void {
-    this.clases.set([]);
-    this.seleccionada.set(null);
-  }
-
-  restaurarCatalogo(): void {
-    this.clases.set([...CLASES_LOCALES]);
-    this.categoria.set('todas');
-    this.seleccionada.set(null);
+  reintentar(): void {
+    this.recurso.reload();
   }
 }
