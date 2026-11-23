@@ -1,11 +1,14 @@
 <main class="pagina">
   <div class="encabezado">
     <div>
-      <h1>Nueva clase</h1>
-      <p>Completa los datos. En esta práctica todavía no se envían a la API.</p>
+      <h1>{{ editando() ? 'Editar clase' : 'Nueva clase' }}</h1>
+      <p>{{ editando() ? 'Modifica la clase y guarda los cambios.' : 'Completa los datos para agregar una clase.' }}</p>
     </div>
     <a class="boton boton--secundario" routerLink="/clases">Volver</a>
   </div>
+
+  @if (cargando()) { <p class="cargando">Cargando los datos de la clase...</p> }
+  @if (error()) { <div class="aviso aviso--error" role="alert">{{ error() }}</div> }
 
   <form class="tarjeta formulario" [formGroup]="formulario" (ngSubmit)="guardar()">
     <div class="campo">
@@ -18,20 +21,16 @@
         <span class="error">El nombre admite máximo 80 caracteres.</span>
       }
     </div>
-
     <div class="campo">
       <label for="categoria">Categoría</label>
       <select id="categoria" formControlName="categoria">
         <option [ngValue]="null">Selecciona una categoría</option>
-        @for (categoria of categorias; track categoria) {
-          <option [ngValue]="categoria">{{ categoria }}</option>
-        }
+        @for (categoria of categorias; track categoria) { <option [ngValue]="categoria">{{ categoria }}</option> }
       </select>
       @if (formulario.controls.categoria.touched && formulario.controls.categoria.hasError('required')) {
         <span class="error">La categoría es obligatoria.</span>
       }
     </div>
-
     <div class="campo">
       <label for="descripcion">Descripción</label>
       <textarea id="descripcion" rows="4" formControlName="descripcion"></textarea>
@@ -42,7 +41,6 @@
         <span class="error">La descripción admite máximo 255 caracteres.</span>
       }
     </div>
-
     <div class="fila">
       <div class="campo">
         <label for="duracion">Duración (minutos)</label>
@@ -57,7 +55,6 @@
           <span class="error">La duración debe estar en bloques de 5 minutos.</span>
         }
       </div>
-
       <div class="campo">
         <label for="imagen">Imagen</label>
         <input id="imagen" type="text" formControlName="imagen" placeholder="/img/clase-09.jpg" />
@@ -69,17 +66,17 @@
         }
       </div>
     </div>
-
     <div class="acciones">
-      <button class="boton" type="submit">Guardar</button>
+      <button class="boton" type="submit"
+        [disabled]="guardando() || cargando() || eliminando() || (editando() && claseId() === null)">
+        {{ guardando() ? 'Guardando...' : editando() ? 'Guardar cambios' : 'Guardar clase' }}
+      </button>
+      @if (editando() && claseId() !== null) {
+        <button class="boton boton--peligro" type="button" [disabled]="guardando() || eliminando() || cargando()" (click)="eliminar()">
+          {{ eliminando() ? 'Eliminando...' : 'Eliminar clase' }}
+        </button>
+      }
       <a class="boton boton--secundario" routerLink="/clases">Cancelar</a>
     </div>
   </form>
-
-  @if (objetoListo()) {
-    <div class="aviso aviso--exito">
-      <strong>Objeto listo para mandar a la API:</strong>
-      <pre>{{ objetoListo() }}</pre>
-    </div>
-  }
 </main>

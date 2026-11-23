@@ -8,6 +8,20 @@
     <a class="boton" routerLink="/clases/nueva">+ Nueva clase</a>
   </div>
 
+  <div class="buscador">
+    <label for="buscar-clases">Buscar por nombre</label>
+    <input
+      id="buscar-clases"
+      type="search"
+      autocomplete="off"
+      placeholder="Ej. yoga o ciclismo"
+      [formControl]="busqueda"
+    />
+    <span class="buscador__estado" aria-live="polite">
+      @if (catalogo.termino()) { Buscando: {{ catalogo.termino() }} }
+    </span>
+  </div>
+
   @if (catalogo.cargando()) {
     <p class="cargando">Cargando clases...</p>
   } @else if (catalogo.mensajeError()) {
@@ -48,7 +62,13 @@
             }
           </div>
         } @else {
-          <div class="tarjeta vacio">No hay clases para mostrar.</div>
+          <div class="tarjeta vacio">
+            @if (catalogo.termino()) {
+              No se encontraron clases con el nombre "{{ catalogo.termino() }}".
+            } @else {
+              No hay clases para mostrar con este filtro.
+            }
+          </div>
         }
       </section>
 
@@ -69,6 +89,9 @@
             <span class="dato__clave">ID:</span>
             <span class="dato__valor">{{ clase.id }}</span>
           </p>
+          <div class="acciones">
+            <a class="boton" [routerLink]="['/clases', clase.id, 'editar']">Editar</a>
+          </div>
         </aside>
       }
     </div>

@@ -241,3 +241,7 @@ select.ng-invalid.ng-touched, textarea.ng-invalid.ng-touched { border-color: var
 .login .tarjeta { width: 100%; max-width: 380px; }
 .login__marca { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; }
 .login__marca img { width: 36px; height: 36px; }
+
+/* Sesión de la Práctica 22 */
+.barra__usuario { color: #e5ebf0; font-size: 0.83rem; white-space: nowrap; }
+@media (max-width: 850px) { .barra__usuario { display: none; } }

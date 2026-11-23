@@ -1,0 +1,26 @@
+<main class="login">
+  <section class="tarjeta">
+    <div class="login__marca"><img src="/logo.svg" alt="Logo del gimnasio" /><h1>Gimnasio Titanes</h1></div>
+    <p>Panel de administración</p>
+    <form [formGroup]="formulario" (ngSubmit)="entrar()">
+      <div class="campo">
+        <label for="correo">Correo</label>
+        <input id="correo" type="email" autocomplete="username" formControlName="correo" />
+        @if (formulario.controls.correo.touched && formulario.controls.correo.invalid) {
+          <span class="error">Captura un correo válido.</span>
+        }
+      </div>
+      <div class="campo">
+        <label for="password">Contraseña</label>
+        <input id="password" type="password" autocomplete="current-password" formControlName="password" />
+        @if (formulario.controls.password.touched && formulario.controls.password.invalid) {
+          <span class="error">Escribe la contraseña.</span>
+        }
+      </div>
+      @if (error()) { <p class="aviso aviso--error" role="alert">{{ error() }}</p> }
+      <button class="boton" type="submit" [disabled]="guardando()">
+        {{ guardando() ? 'Entrando...' : 'Entrar' }}
+      </button>
+    </form>
+  </section>
+</main>

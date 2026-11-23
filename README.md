@@ -93,3 +93,72 @@ El aviso **NG8109** en Angular surge cuando se detectan patrones incorrectos rel
 
 * **¿Por qué no hizo falta iniciar sesión para leer el catálogo?**
   * **Motivo**: La ruta del catálogo (`GET /clases`) está configurada en el backend como un endpoint público de acceso libre (sin requerir autenticación ni token JWT), reservando los mecanismos de seguridad y autorización únicamente para las rutas protegidas del panel de administración (como la creación, actualización o eliminación de elementos).
+
+---
+
+## Práctica 22: El panel del gimnasio: crear y editar clases
+
+### Ejercicio 1: Guardar con POST
+
+**1. Si el formulario ya valida, ¿por qué también valida el servidor?**
+* **Seguridad:** Las validaciones en el frontend (Angular) son únicamente para mejorar la experiencia de usuario (UX) y darle retroalimentación rápida. Cualquier usuario malintencionado puede saltarse el navegador y enviar peticiones directamente a la API usando herramientas como Postman, cURL o scripts.
+* **Integridad de los datos:** El servidor es la última línea de defensa antes de guardar en la base de datos. Debe garantizar que los datos cumplan con las reglas de negocio y esquemas estrictos sin importar de dónde provenga la petición.
+
+**2. ¿Por qué `httpResource` para leer y `HttpClient` para crear, editar y eliminar?**
+* **`httpResource` (Lectura / GET):** Está diseñado de forma declarativa y reactiva. Se integra nativamente con Signals para gestionar automáticamente estados de carga (`isLoading`), errores y recargas cuando cambian los parámetros de consulta.
+* **`HttpClient` (Mutaciones / POST, PATCH, DELETE):** Las operaciones de escritura son acciones imperativas detonadas por eventos específicos del usuario (como hacer clic en "Guardar" o "Eliminar"). `HttpClient` devuelve un `Observable` que permite encadenar operadores de RxJS y controlar exactamente qué hacer tras una respuesta exitosa o un error (ej. mostrar alertas, navegar a otra ruta o deshabilitar botones).
+
+**3. ¿Qué pasa si se olvida el `.subscribe()`?**
+* La petición HTTP **nunca se ejecuta**. En RxJS, los `Observables` que devuelve `HttpClient` son "fríos" (*Cold Observables*), lo que significa que la lógica interna (la llamada a la red) no se dispara hasta que alguien se suscribe a ellos para escuchar el resultado.
+
+---
+
+### Ejercicio 2: El login, los interceptores y el guardia
+
+**1. ¿A qué pieza de React corresponden las rutas hijas (`children`), el interceptor y el guardia?**
+* **Rutas hijas (`children`) + `<router-outlet>`:** Corresponden a las rutas anidadas de React Router junto con el componente `<Outlet />` dentro de un componente de diseño (*Layout*).
+* **Interceptor HTTP:** Corresponde a los interceptores de **Axios** (`axios.interceptors.request.use` / `response.use`) o a un *wrapper* personalizado alrededor de la API nativa `fetch()`.
+* **Guardia (`CanActivate`):** Corresponde a un componente envoltorio de rutas protegidas (comúnmente llamado `<ProtectedRoute>` o `<PrivateRoute>`), el cual evalúa el estado de autenticación y usa `<Navigate />` para redirigir si no se cumple la condición.
+
+**2. ¿Cuándo se ejecuta el guardia y por qué `salir()` tiene que navegar al login?**
+* **Cuándo se ejecuta:** Se ejecuta justo antes de que el enrutador de Angular active o cargue una ruta protegida (en cada intento de navegación hacia esa ruta).
+* **Por qué `salir()` navega al login:** El guardia solo evalúa el acceso *al momento de intentar entrar a una ruta*, no vigila continuamente la pantalla actual en tiempo real. Si el usuario ya está dentro del panel y hace clic en `salir()`, borrar el token de la sesión no lo expulsa automáticamente de la vista; es necesario forzar la navegación hacia `/login` para sacarlo de la ruta protegida.
+
+---
+
+### Ejercicio 3: Editar, eliminar y la guarda de salida
+
+**1. ¿Cómo decide un mismo formulario, con dos rutas, si manda `POST` o `PATCH`?**
+* Mediante el parámetro `id` recibido desde la URL (como un `@Input()` gracias a `withComponentInputBinding()`). 
+* Si el `id` existe (proviene de la ruta `/clases/:id/editar`), el componente sabe que está en modo edición y envía un **`PATCH`**. Si el `id` es `undefined` (proviene de `/clases/nueva`), sabe que es un registro nuevo y envía un **`POST`**.
+
+**2. ¿Por qué el estado del formulario no se puede observar con un `computed()`?**
+* Porque `computed()` únicamente rastrea dependencias de **Signals** de Angular que se lean dentro de su función. Los formularios reactivos tradicionales (`FormGroup` / `FormControl`) funcionan mediante eventos internos y `Observables` de RxJS (`valueChanges`, `statusChanges`), no con Signals, por lo que `computed()` no detectaría ningún cambio cuando el usuario escriba o modifique el formulario.
+
+**3. ¿Qué diferencia hay entre `canActivate` y `canDeactivate`, y qué casos no cubre la guarda de salida?**
+* **Diferencia:** `canActivate` decide si un usuario puede **entrar** a una ruta (ej. verificar si tiene sesión iniciada o rol de admin). `canDeactivate` decide si un usuario puede **salir** de la ruta actual (ej. evitar que pierda cambios sin guardar en un formulario).
+* **Casos que no cubre:** Al ser una guarda del enrutador interno de Angular (SPA), solo intercepta navegaciones dentro de la propia aplicación (clics en enlaces `routerLink` o llamadas a `router.navigate()`). **No cubre** acciones a nivel del navegador como cerrar la pestaña, cerrar el navegador completo, recargar la página (F5) o escribir una URL externa directamente en la barra de direcciones (para eso se requiere el evento nativo `window:beforeunload`).
+
+**4. *(Opcional)* ¿Por qué la ruta de crear (`clases/nueva`) va antes que la del id (`clases/:id`)?**
+* Porque el enrutador de Angular evalúa las rutas de arriba hacia abajo y se queda con la **primera que coincida**. Si `clases/:id` estuviera primero, al navegar a `/clases/nueva`, Angular interpretaría la palabra `"nueva"` como el parámetro dinámico `:id` e intentaría cargar el detalle de una clase con ID `"nueva"`.
+
+---
+
+## Práctica 23: El panel del gimnasio: el buscador con RxJS
+
+### Ejercicio 1: El tubo de búsqueda
+
+**1. ¿Qué diferencia hay entre un `signal` y un `Observable`?**
+* **Signal:** Es un contenedor de estado síncrono que **siempre tiene un valor actual** disponible de inmediato al leerlo (`miSignal()`). Está diseñado para la reactividad de la interfaz de usuario, rastrea sus dependencias automáticamente y no requiere suscripciones manuales ni desuscripciones para evitar fugas de memoria.
+* **Observable:** Representa un flujo de eventos o datos asíncronos a lo largo del tiempo (puede emitir 0, 1 o múltiples valores, o fallar). Es ideal para manejar eventos complejos y peticiones de red mediante operadores de transformación y tiempo (como `debounceTime` o `switchMap`), pero requiere suscripción para activarse y gestión de su ciclo de vida.
+
+---
+
+### Ejercicio 2: La caja de búsqueda
+
+**1. ¿Qué problema evita `switchMap` y qué pasaría con `mergeMap`?**
+* **Problema que evita `switchMap`:** Evita condiciones de carrera (*race conditions*) y peticiones innecesarias. Cuando el usuario escribe una nueva letra y llega un nuevo término de búsqueda, `switchMap` **cancela** automáticamente la petición HTTP anterior que seguía en curso y se queda únicamente con la más reciente.
+* **Qué pasaría con `mergeMap`:** Ejecutaría todas las peticiones en paralelo sin cancelar ninguna. Si una búsqueda anterior tarda más tiempo en responder que la última (por latencia de red), la respuesta vieja sobrescribiría a la nueva en la pantalla, mostrando resultados desactualizados que no corresponden con lo que está escrito en la caja de búsqueda.
+
+**2. ¿Qué pasa si se quita `catchError` y la API se apaga?**
+* En RxJS, cuando un flujo emite una notificación de `error` no capturada, **el Observable muere (se cierra permanentemente)**. Si la API falla una vez y no hay `catchError` *dentro* del `switchMap` para atrapar el error y devolver un flujo alternativo (como un arreglo vacío `of([])`), el buscador dejará de funcionar por completo; aunque el usuario siga escribiendo después de que la API vuelva a encenderse, ya no se realizará ninguna búsqueda.
